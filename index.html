@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EMQ artists summary</title>
+  <title>Kennking Leaderboard</title>
   <style>
     :root {
       --bg: #f0f2f5;
@@ -24,6 +24,9 @@
       --sub-btn-active: #3b82f6;
       --label-color: #64748b;
       --detail-bg: #f1f5f9;
+      --sidebar-bg: #ffffff;
+      --sidebar-hover: #e2e8f0;
+      --sidebar-active: #3b82f6;
     }
 
     body.night-mode {
@@ -45,15 +48,20 @@
       --sub-btn-active: #60a5fa;
       --label-color: #94a3b8;
       --detail-bg: #1e293b;
+      --sidebar-bg: #1e293b;
+      --sidebar-hover: #334155;
+      --sidebar-active: #3b82f6;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: 24px;
+      padding: 20px;
       transition: background 0.3s, color 0.3s;
+      min-height: 100vh;
     }
 
     .top-bar {
@@ -61,23 +69,29 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
-      gap: 16px;
+      gap: 12px;
       flex-wrap: wrap;
     }
+
     .table-switcher { display: flex; gap: 8px; flex-wrap: wrap; }
+
     .table-btn {
       background: var(--btn-bg);
       color: var(--btn-text);
       border: none;
-      padding: 8px 18px;
+      padding: 8px 16px;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 500;
     }
-    .table-btn.active { background: var(--btn-active); color: var(--btn-active-text); }
+    .table-btn.active {
+      background: var(--btn-active);
+      color: var(--btn-active-text);
+    }
 
-    .top-right { display: flex; align-items: center; gap: 12px; }
+    .top-right { display: flex; align-items: center; gap: 10px; }
+
     #last-updated {
       font-size: 0.64rem;
       color: var(--updated-text);
@@ -85,6 +99,7 @@
       padding: 5px 9px;
       border-radius: 5px;
     }
+
     #theme-toggle {
       background: var(--header-bg);
       color: var(--header-text);
@@ -92,18 +107,24 @@
       padding: 8px 14px;
       border-radius: 8px;
       cursor: pointer;
+      font-size: 0.9rem;
     }
 
-    .artist-controls {
+    .artist-controls, .individual-controls {
       display: none;
-      gap: 24px;
-      margin-bottom: 20px;
+      gap: 20px;
+      margin-bottom: 16px;
       flex-wrap: wrap;
       align-items: center;
     }
-    .artist-controls.show { display: flex; }
+    .artist-controls.show, .individual-controls.show { display: flex; }
+
     .control-group { display: flex; align-items: center; gap: 6px; }
-    .control-label { font-size: 0.8rem; font-weight: 600; color: var(--label-color); }
+    .control-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--label-color);
+    }
 
     .sub-btn {
       background: var(--sub-btn-bg);
@@ -115,13 +136,17 @@
       font-size: 0.765rem;
       font-weight: 500;
     }
-    .sub-btn.active { background: var(--sub-btn-active); color: white; }
+    .sub-btn.active {
+      background: var(--sub-btn-active);
+      color: white;
+    }
 
     .help-icon {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 18px; height: 18px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: #94a3b8;
       color: white;
@@ -132,7 +157,7 @@
       margin-left: 4px;
     }
     .help-icon:hover::after {
-      content: "Help button not available yet";
+      content: "Help button not available yet.\A Will be available in future";
       white-space: pre;
       position: absolute;
       left: 50%;
@@ -146,27 +171,79 @@
       z-index: 100;
     }
 
-    .title-area { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+    .title-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
     .title-area.hidden { display: none; }
-    h1 { font-size: 1.35rem; font-weight: 700; }
+    h1 { font-size: 1.3rem; font-weight: 700; }
+
+    /* Individual layout */
+    .individual-layout {
+      display: none;
+      gap: 16px;
+      height: calc(100vh - 160px);
+    }
+    .individual-layout.show { display: flex; }
+
+    .player-sidebar {
+      width: 12.5%;
+      min-width: 160px;
+      background: var(--sidebar-bg);
+      border-radius: 10px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      padding: 8px 0;
+    }
+
+    .player-item {
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .player-item:hover { background: var(--sidebar-hover); }
+    .player-item.active {
+      background: var(--sidebar-active);
+      color: white;
+    }
+    .player-item .uid {
+      font-size: 0.7rem;
+      opacity: 0.75;
+      margin-top: 2px;
+    }
+
+    .individual-table-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
     .table-container {
       background: var(--card-bg);
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      overflow: hidden;
+      overflow: auto;
+      flex: 1;
     }
+
     table { width: 100%; border-collapse: collapse; }
     th {
       background: var(--header-bg);
       color: var(--header-text);
-      padding: 14px 16px;
+      padding: 12px 14px;
       text-align: center;
       font-weight: 600;
       cursor: pointer;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
     td {
-      padding: 12px 16px;
+      padding: 10px 14px;
       border-bottom: 1px solid var(--border);
       text-align: center;
     }
@@ -174,18 +251,13 @@
     tr:nth-child(even) { background: var(--row-even); }
     tr:hover { background: var(--row-hover); cursor: pointer; }
 
-    /* Expandable detail row */
     .detail-row td {
       background: var(--detail-bg);
       padding: 16px 20px;
       text-align: left;
       font-size: 0.9rem;
-      line-height: 1.6;
-      cursor: pointer;          /* shows it's clickable */
-    }
-
-    .detail-row td:hover {
-      filter: brightness(0.98);
+      line-height: 1.55;
+      cursor: pointer;
     }
     .detail-row { display: none; }
     .detail-row.show { display: table-row; }
@@ -193,17 +265,21 @@
 </head>
 <body>
 
+  <!-- Top Bar -->
   <div class="top-bar">
     <div class="table-switcher">
       <button class="table-btn active" data-main="kennking">Kennking</button>
-      <button class="table-btn" data-main="artist">Artist guess rate</button>
+      <button class="table-btn" data-main="artist">Artist guess rate in general</button>
+      <button class="table-btn" data-main="individual">Artist guess rate by individual</button>
     </div>
+
     <div class="top-right">
       <div id="last-updated">Loading...</div>
       <button id="theme-toggle">🌙 Night Mode</button>
     </div>
   </div>
 
+  <!-- Artist controls -->
   <div class="artist-controls" id="artist-controls">
     <div class="control-group">
       <span class="control-label">Data:</span>
@@ -212,7 +288,7 @@
       <button class="sub-btn" data-type="missed">Missed</button>
       <button class="sub-btn" data-type="playcount">Playcount</button>
     </div>
-    <div class="control-group" id="by-group">
+    <div class="control-group">
       <span class="control-label">By:</span>
       <button class="sub-btn by-option by-normal active" data-by="count">Count</button>
       <button class="sub-btn by-option by-normal" data-by="pct">Percentage</button>
@@ -222,16 +298,47 @@
     </div>
   </div>
 
+  <!-- Individual controls -->
+  <div class="individual-controls" id="individual-controls">
+    <div class="control-group">
+      <span class="control-label">Data:</span>
+      <button class="sub-btn ind-type active" data-ind-type="correct">Correct</button>
+      <button class="sub-btn ind-type" data-ind-type="incorrect">Incorrect</button>
+      <button class="sub-btn ind-type" data-ind-type="missed">Missed</button>
+    </div>
+    <div class="control-group">
+      <span class="control-label">By:</span>
+      <button class="sub-btn ind-by active" data-ind-by="count">Count</button>
+      <button class="sub-btn ind-by" data-ind-by="pct">Percentage</button>
+      <div class="help-icon">?</div>
+    </div>
+  </div>
+
+  <!-- Title -->
   <div class="title-area" id="title-area">
     <h1>Kennking Leaderboard</h1>
     <div class="help-icon">?</div>
   </div>
 
-  <div class="table-container">
+  <!-- Normal table -->
+  <div class="table-container" id="normal-table-container">
     <table id="data-table">
       <thead><tr id="header-row"></tr></thead>
       <tbody id="table-body"></tbody>
     </table>
+  </div>
+
+  <!-- Individual layout -->
+  <div class="individual-layout" id="individual-layout">
+    <div class="player-sidebar" id="player-sidebar"></div>
+    <div class="individual-table-area">
+      <div class="table-container">
+        <table id="ind-data-table">
+          <thead><tr id="ind-header-row"></tr></thead>
+          <tbody id="ind-table-body"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
 <script>
@@ -240,12 +347,18 @@
   let columns = [];
   let sortColumn = null;
   let sortAsc = true;
+
   let currentMain = "kennking";
   let currentType = "correct";
   let currentBy = "count";
-  let artistLookup = {};
 
-  // Night mode
+  let currentIndType = "correct";
+  let currentIndBy = "count";
+  let currentPlayerId = null;
+  let artistLookup = {};
+  let playerList = [];
+
+  // Night Mode
   const themeToggle = document.getElementById('theme-toggle');
   if (localStorage.getItem('theme') === 'night') {
     document.body.classList.add('night-mode');
@@ -268,10 +381,10 @@
     });
   });
 
-  // Data type
-  document.querySelectorAll('[data-type]').forEach(btn => {
+  // Artist controls
+  document.querySelectorAll('#artist-controls [data-type]').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-type]').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#artist-controls [data-type]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentType = btn.dataset.type;
       updateByButtons();
@@ -279,15 +392,33 @@
     });
   });
 
-  // By buttons
-  document.querySelectorAll('.by-option').forEach(btn => {
+  document.querySelectorAll('#artist-controls .by-option').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.by-option').forEach(b => {
+      document.querySelectorAll('#artist-controls .by-option').forEach(b => {
         if (b.style.display !== 'none') b.classList.remove('active');
       });
       btn.classList.add('active');
       currentBy = btn.dataset.by;
       loadCurrentTable();
+    });
+  });
+
+  // Individual controls
+  document.querySelectorAll('.ind-type').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ind-type').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentIndType = btn.dataset.indType;
+      loadIndividualTable();
+    });
+  });
+
+  document.querySelectorAll('.ind-by').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ind-by').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentIndBy = btn.dataset.indBy;
+      loadIndividualTable();
     });
   });
 
@@ -310,15 +441,33 @@
   function updateView() {
     const titleArea = document.getElementById('title-area');
     const artistControls = document.getElementById('artist-controls');
+    const individualControls = document.getElementById('individual-controls');
+    const normalTable = document.getElementById('normal-table-container');
+    const individualLayout = document.getElementById('individual-layout');
+
+    titleArea.classList.add('hidden');
+    artistControls.classList.remove('show');
+    individualControls.classList.remove('show');
+    normalTable.style.display = 'none';
+    individualLayout.classList.remove('show');
+
     if (currentMain === "kennking") {
       titleArea.classList.remove('hidden');
-      artistControls.classList.remove('show');
-    } else {
-      titleArea.classList.add('hidden');
+      normalTable.style.display = 'block';
+      loadCurrentTable();
+    } 
+    else if (currentMain === "artist") {
       artistControls.classList.add('show');
+      normalTable.style.display = 'block';
       updateByButtons();
+      loadCurrentTable();
+    } 
+    else if (currentMain === "individual") {
+      individualControls.classList.add('show');
+      individualLayout.classList.add('show');
+      renderPlayerList();
+      loadIndividualTable();
     }
-    loadCurrentTable();
   }
 
   async function loadData() {
@@ -326,6 +475,7 @@
       const res = await fetch('data.json?' + Date.now());
       allData = await res.json();
       artistLookup = allData.artist_lookup || {};
+      playerList = allData.player_list || [];
       updateView();
     } catch (e) {
       document.getElementById('last-updated').textContent = 'Failed to load data.json';
@@ -353,20 +503,100 @@
     document.getElementById('last-updated').textContent =
       'Last updated: ' + new Date(json.last_updated).toLocaleString();
 
-    renderHeader();
-    renderTable();
+    renderHeader('header-row', 'table-body');
+    renderTable('table-body');
   }
 
-  function renderHeader() {
-    const headerRow = document.getElementById('header-row');
+  function renderPlayerList() {
+    const sidebar = document.getElementById('player-sidebar');
+    sidebar.innerHTML = '';
+
+    playerList.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'player-item';
+      if (String(p.player_id) === String(currentPlayerId)) div.classList.add('active');
+      div.innerHTML = `<div>${p.Username}</div><div class="uid">ID: ${p.player_id}</div>`;
+      div.onclick = () => {
+        currentPlayerId = p.player_id;
+        document.querySelectorAll('.player-item').forEach(el => el.classList.remove('active'));
+        div.classList.add('active');
+        loadIndividualTable();
+      };
+      sidebar.appendChild(div);
+    });
+
+    if (!currentPlayerId && playerList.length > 0) {
+      currentPlayerId = playerList[0].player_id;
+      sidebar.querySelector('.player-item')?.classList.add('active');
+    }
+  }
+
+  function loadIndividualTable() {
+    if (!currentPlayerId) return;
+
+    const key = `player-${currentIndBy}-${currentIndType}`;
+    if (!allData || !allData[key]) {
+      document.getElementById('last-updated').textContent = `Table "${key}" not found`;
+      return;
+    }
+
+    const json = allData[key];
+
+    // Filter by player
+    let filtered = json.data.filter(r => String(r.player_id) === String(currentPlayerId));
+
+    // Add Latin Alias & Non-Latin Alias from artist_lookup
+    filtered = filtered.map(row => {
+      const artistId = String(row['Artist ID'] || row.artist_id);
+      const fullName = artistLookup[artistId] || '';
+      
+      let latin = '';
+      let nonLatin = '';
+
+      if (fullName) {
+        // Format from artist_lookup is: "Latin Alias (Non-Latin Alias)"
+        const match = fullName.match(/^(.*?)\s*\((.*?)\)$/);
+        if (match) {
+          latin = match[1].trim();
+          nonLatin = match[2].trim();
+        } else {
+          latin = fullName;
+        }
+      }
+
+      return {
+        ...row,
+        'Latin Alias': latin || 'n/a',
+        'Non-Latin Alias': nonLatin || 'n/a'
+      };
+    });
+
+    tableData = filtered;
+
+    // Build columns: Artist ID + Latin + Non-Latin + the rest (excluding player_id)
+    const baseColumns = json.columns.filter(c => c !== 'player_id' && c !== 'Artist ID');
+    columns = ['Artist ID', 'Latin Alias', 'Non-Latin Alias', ...baseColumns];
+
+    sortColumn = null;
+    sortAsc = true;
+
+    document.getElementById('last-updated').textContent =
+      'Last updated: ' + new Date(json.last_updated).toLocaleString();
+
+    renderHeader('ind-header-row', 'ind-table-body');
+    renderTable('ind-table-body');
+  }
+
+  function renderHeader(headerId, bodyId) {
+    const headerRow = document.getElementById(headerId);
     headerRow.innerHTML = '';
     columns.forEach(col => {
       const th = document.createElement('th');
       th.textContent = col;
-      th.onclick = () => sortTable(col);
+      th.onclick = () => sortTable(col, bodyId);
       const arrow = document.createElement('span');
       arrow.className = 'arrow';
-      arrow.id = 'arrow-' + col;
+      arrow.id = 'arrow-' + col + '-' + bodyId;
       th.appendChild(arrow);
       headerRow.appendChild(th);
     });
@@ -374,9 +604,8 @@
 
   function formatPeopleDict(dictObj, title) {
     if (!dictObj || typeof dictObj !== 'object') return '';
-
     const items = Object.entries(dictObj)
-      .sort((a, b) => b[1] - a[1])   // sort by count descending
+      .sort((a, b) => b[1] - a[1])
       .map(([id, cnt]) => {
         const name = artistLookup[id] || artistLookup[String(id)] || `ID:${id}`;
         return `${name} ${cnt} times`;
@@ -384,21 +613,17 @@
 
     if (items.length === 0) return '';
 
-    // Create two-column numbered list
-    let html = `<div style="font-weight:600; margin-bottom:8px;">${title}</div>`;
-    html += `<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 4px 30px;">`;
-
-    items.forEach((item, index) => {
-      const num = index + 1;
-      html += `<div>${num}. ${item}</div>`;
+    let html = `<div style="font-weight:600;margin-bottom:8px;">${title}</div>`;
+    html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;">`;
+    items.forEach((item, i) => {
+      html += `<div>${i+1}. ${item}</div>`;
     });
-
     html += `</div>`;
     return html;
   }
 
-  function renderTable() {
-    const tbody = document.getElementById('table-body');
+  function renderTable(bodyId) {
+    const tbody = document.getElementById(bodyId);
     tbody.innerHTML = '';
 
     tableData.forEach((row, idx) => {
@@ -408,76 +633,60 @@
       columns.forEach(col => {
         const td = document.createElement('td');
         let value = row[col];
-        if (typeof value === 'number' && !Number.isInteger(value)) {
-          value = value.toFixed(2);
-        }
-        td.textContent = value;
+        if (typeof value === 'number' && !Number.isInteger(value)) value = value.toFixed(2);
+        td.textContent = value ?? '';
         tr.appendChild(td);
       });
 
-      // Click on the main row to toggle
       tr.addEventListener('click', (e) => {
         e.stopPropagation();
-        toggleDetail(tr, row);
+        toggleDetail(tr, row, bodyId);
       });
-
       tbody.appendChild(tr);
 
-      // Detail row
       const detailTr = document.createElement('tr');
       detailTr.className = 'detail-row';
-      detailTr.id = 'detail-' + idx;
-
+      detailTr.id = `detail-${bodyId}-${idx}`;
       const detailTd = document.createElement('td');
       detailTd.colSpan = columns.length;
-      detailTd.style.cursor = 'pointer';          // make it clear it's clickable
       detailTr.appendChild(detailTd);
 
-      // Click on the detail area itself also collapses it
       detailTr.addEventListener('click', (e) => {
         e.stopPropagation();
         detailTr.classList.remove('show');
       });
-
       tbody.appendChild(detailTr);
     });
   }
 
-  function toggleDetail(tr, row) {
+  function toggleDetail(tr, row, bodyId) {
     const idx = tr.dataset.idx;
-    const detailTr = document.getElementById('detail-' + idx);
+    const detailTr = document.getElementById(`detail-${bodyId}-${idx}`);
     const detailTd = detailTr.querySelector('td');
 
-    // If already open → close it
     if (detailTr.classList.contains('show')) {
       detailTr.classList.remove('show');
       return;
     }
 
-    // Build the content
     let content = '';
+    const type = (currentMain === "individual") ? currentIndType : currentType;
 
-    if (currentType === 'incorrect') {
-      content = formatPeopleDict(row.incorrect_people, "What is the actual artist when people typed this artist:");
-    } 
-    else if (currentType === 'missed') {
-      content = formatPeopleDict(row.missed_people, "What people typed when they missed this artist:");
-    } 
-    else if (currentType === 'playcount') {
-      const part1 = formatPeopleDict(row.incorrect_people, "What is the actual artist when people typed this artist:");
-      const part2 = formatPeopleDict(row.missed_people, "What people typed when they missed this artist:");
-      content = [part1, part2].filter(Boolean).join('<br><br>');
+    if (type === 'incorrect') {
+      content = formatPeopleDict(row.incorrect_people, "What is the actual artist when they typed this artist:");
+    } else if (type === 'missed') {
+      content = formatPeopleDict(row.missed_people, "What they typed when they missed this artist:");
+    } else if (type === 'playcount') {
+      const p1 = formatPeopleDict(row.incorrect_people, "What is the actual artist when they typed this artist:");
+      const p2 = formatPeopleDict(row.missed_people, "What they typed when they missed this artist:");
+      content = [p1, p2].filter(Boolean).join('<br><br>');
     }
 
-    if (!content) {
-      content = "No detailed information available.";
-    }
-
-    detailTd.innerHTML = content;   // use innerHTML because we now generate HTML
+    detailTd.innerHTML = content || "No detailed information available.";
     detailTr.classList.add('show');
   }
 
-  function sortTable(col) {
+  function sortTable(col, bodyId) {
     if (sortColumn === col) sortAsc = !sortAsc;
     else { sortColumn = col; sortAsc = true; }
 
@@ -489,16 +698,15 @@
       if (typeof valA === 'number' && typeof valB === 'number') {
         return sortAsc ? valA - valB : valB - valA;
       }
-      valA = String(valA).toLowerCase();
-      valB = String(valB).toLowerCase();
-      return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      return sortAsc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
     });
 
     columns.forEach(c => {
-      const arrow = document.getElementById('arrow-' + c);
+      const arrow = document.getElementById(`arrow-${c}-${bodyId}`);
       if (arrow) arrow.textContent = (c === sortColumn) ? (sortAsc ? ' ▲' : ' ▼') : '';
     });
-    renderTable();
+
+    renderTable(bodyId);
   }
 
   loadData();
